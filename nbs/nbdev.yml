@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "scDenorm"
+  site-url: "https://changebio.github.io/scDenorm"
+  description: "scDenorm: a denormalization tool for single-cell transcriptomics data"
+  repo-branch: main
+  repo-url: "https://github.com/changebio/scDenorm"
