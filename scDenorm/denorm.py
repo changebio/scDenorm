@@ -6,9 +6,10 @@ __all__ = ['scdenorm', 'unscale_mat', 'select_base', 'check_unscale', 'get_scali
 # %% ../nbs/00_scDenorm.ipynb 4
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import scanpy as sc
 from anndata import AnnData
-from scipy.sparse import diags
+from scipy.sparse import diags,issparse
 from scipy.io import mmwrite
 from tqdm import tqdm
 from pathlib import Path
@@ -23,7 +24,7 @@ def scdenorm(fin:str, # The input file or AnnData
              gxc:bool = False, # Change to True if the data is stored with gene by cell
              base:float = None, # Give the base if it is known
              cont:float = 1.0, # The constant plused after scaling
-             cutoff:float = 0.05, 
+             cutoff:float = 0.001, 
              verbose:int = 0):
     """
     denormalize takes a cell * gene expression matrix that has been normalized according to single-cell RNA 
@@ -40,32 +41,41 @@ def scdenorm(fin:str, # The input file or AnnData
         logging.info(f'Reading input file: {fin}')
         ad=sc.read(fin)
     except:
-        ad=fin
+        ad=fin.copy()
+    #make sure ad.X have data and is dense matrix
+    if ad.shape[0]<1 or ad.shape[1]<1:
+        raise Exception("The anndata don't have cells or genes")
+    if not issparse(ad.X):
+        ad.X = sp.sparse.csr_matrix(ad.X)
+    ad.X.eliminate_zeros() #remove potential 0s.
     logging.info(f'The dimensions of this data are {ad.shape}.')
     if gxc: #if data is gene by cell
         logging.info(f'The data is gene by cell. It is transposed to cell by gene {ad.T.shape}')
         ad=ad.T
     smtx=ad.X  #must be cell by gene
-    smtx.eliminate_zeros() #remove potential 0s.
+    
     #select base and denormlize
     if base is None:
         logging.info('select base')
-        base = select_base(smtx.getrow(0).data,cont,cutoff)
-    logging.info('denormlizing ...')
-    if check_unscale(smtx.getrow(0).data,base,cont,cutoff):
+        base = select_base(smtx.getrow(0).data.copy(),cont,cutoff)
+    logging.info(f'denormlizing ...the base is {base}')
+    if check_unscale(smtx.getrow(0).data.copy(),base,cont,cutoff):
         counts,success_cells=unscale_mat(smtx,base,cont,cutoff)
-        ad=ad[success_cells,:] #filter failed cells
+        ad=ad[success_cells] #filter failed cells
     else:
         logging.error('Denormlization has failed. Output the orignal data')
         counts=smtx
     if fout is None:
+        counts.data=counts.data.astype(ad.X.dtype)
         ad.X=counts
         return ad
+       
     #write output
     logging.info(f'Writing output file: {fout}')
     if fout.endswith('.mtx'):
         mmwrite(fout, counts, field = 'integer')
     else:
+        counts.data=counts.data.astype(ad.X.dtype)
         ad.X=counts
         ad.write(fout)    
 
@@ -94,7 +104,7 @@ def unscale_mat(smtx,base=np.e,cont=1,cutoff=0.05):
     scaled_counts=scaled_counts[success_cells,:]
     scaling_factors = diags(scaling_factors)
     counts = scaling_factors*scaled_counts
-    return counts.rint(),success_cells
+    return counts,success_cells
 
 def select_base(x,cont=1,cutoff=0.05,plot=False):
     for b in [np.e,2,10,1]:

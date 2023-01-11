@@ -3,4 +3,4 @@ website:
     contents:
       - index.ipynb
       - 00_scDenorm.ipynb
-      - 01_examples.ipynb
+      - 01_benchmark.ipynb
