@@ -3,13 +3,13 @@
 # %% auto 0
 __all__ = ['scdenorm', 'unscale_mat', 'select_base', 'check_unscale', 'get_scaling_factor', 'get_scaling_factor_1', 'check_plot']
 
-# %% ../nbs/00_scDenorm.ipynb 4
+# %% ../nbs/00_scDenorm.ipynb 5
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scanpy as sc
 from anndata import AnnData
-from scipy.sparse import diags,issparse
+from scipy.sparse import diags,issparse,csr_matrix
 from scipy.io import mmwrite
 from tqdm import tqdm
 from pathlib import Path
@@ -17,7 +17,7 @@ from fastcore.script import *
 import logging
 logging.getLogger().setLevel(logging.INFO)
 
-# %% ../nbs/00_scDenorm.ipynb 6
+# %% ../nbs/00_scDenorm.ipynb 7
 @call_parse
 def scdenorm(fin:str, # The input file or AnnData
              fout:str = None, # The path of output file if provided
@@ -46,7 +46,7 @@ def scdenorm(fin:str, # The input file or AnnData
     if ad.shape[0]<1 or ad.shape[1]<1:
         raise Exception("The anndata don't have cells or genes")
     if not issparse(ad.X):
-        ad.X = sp.sparse.csr_matrix(ad.X)
+        ad.X = csr_matrix(ad.X)
     ad.X.eliminate_zeros() #remove potential 0s.
     logging.info(f'The dimensions of this data are {ad.shape}.')
     if gxc: #if data is gene by cell
@@ -79,7 +79,7 @@ def scdenorm(fin:str, # The input file or AnnData
         ad.X=counts
         ad.write(fout)    
 
-# %% ../nbs/00_scDenorm.ipynb 7
+# %% ../nbs/00_scDenorm.ipynb 8
 def unscale_mat(smtx,base=np.e,cont=1,cutoff=0.05):
     """
     unscale takes a cell * gene expression matrix that has been quality-controlled and scaled according to 
@@ -147,7 +147,7 @@ def get_scaling_factor_1(x):
         raise
     return 1/y[0]
 
-# %% ../nbs/00_scDenorm.ipynb 8
+# %% ../nbs/00_scDenorm.ipynb 9
 def check_plot(c,idx,n=10):
     """
     Check_plot takes a cell vector and its index in the gene expression matrix and produce a plot of the first
