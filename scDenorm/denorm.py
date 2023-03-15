@@ -24,6 +24,7 @@ def scdenorm(fin:str, # The input file or AnnData
              gxc:bool = False, # Change to True if the data is stored with gene by cell
              base:float = None, # Give the base if it is known
              cont:float = 1.0, # The constant plused after scaling
+             rint:bool = True, # Round elements of the result to the nearest integer
              cutoff:float = 0.001, 
              verbose:int = 0):
     """
@@ -60,7 +61,7 @@ def scdenorm(fin:str, # The input file or AnnData
         base = select_base(smtx.getrow(0).data.copy(),cont,cutoff)
     logging.info(f'denormlizing ...the base is {base}')
     if check_unscale(smtx.getrow(0).data.copy(),base,cont,cutoff):
-        counts,success_cells=unscale_mat(smtx,base,cont,cutoff)
+        counts,success_cells=unscale_mat(smtx,base,cont,cutoff,rint)
         ad=ad[success_cells] #filter failed cells
     else:
         logging.error('Denormlization has failed. Output the orignal data')
@@ -80,7 +81,7 @@ def scdenorm(fin:str, # The input file or AnnData
         ad.write(fout)    
 
 # %% ../nbs/00_scDenorm.ipynb 7
-def unscale_mat(smtx,base=np.e,cont=1,cutoff=0.05):
+def unscale_mat(smtx,base=np.e,cont=1,cutoff=0.05,rint=True):
     """
     unscale takes a cell * gene expression matrix that has been quality-controlled and scaled according to 
     single-cell RNA sequencing preprocessing procedure and return a recovered count matrix 
@@ -104,6 +105,8 @@ def unscale_mat(smtx,base=np.e,cont=1,cutoff=0.05):
     scaled_counts=scaled_counts[success_cells,:]
     scaling_factors = diags(scaling_factors)
     counts = scaling_factors*scaled_counts
+    if rint:
+        counts=counts.rint()
     return counts,success_cells
 
 def select_base(x,cont=1,cutoff=0.05,plot=False):
