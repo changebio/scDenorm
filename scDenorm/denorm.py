@@ -62,7 +62,7 @@ def scdenorm(fin:str, # The input file or AnnData
     logging.info(f'denormlizing ...the base is {base}')
     if check_unscale(smtx.getrow(0).data.copy(),base,cont,cutoff):
         counts,success_cells=unscale_mat(smtx,base,cont,cutoff,rint)
-        ad=ad[success_cells] #filter failed cells
+        ad=ad[success_cells].copy() #filter failed cells
     else:
         logging.error('Denormlization has failed. Output the orignal data')
         counts=smtx
@@ -110,7 +110,7 @@ def unscale_mat(smtx,base=np.e,cont=1,cutoff=0.05,rint=True):
     return counts,success_cells
 
 def select_base(x,cont=1,cutoff=0.05,plot=False):
-    for b in [np.e,2,10,1]:
+    for b in [np.e,1,2,10]:
         if check_unscale(x,b,cont,cutoff,plot):
             break
     return b
