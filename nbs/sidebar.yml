@@ -1,0 +1,6 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - 00_scDenorm.ipynb
+      - 01_benchmark.ipynb
