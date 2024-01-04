@@ -1,3 +1,4 @@
+notebooks/*
 nbs/data/
 nbs/figures/
 conda/

@@ -74,7 +74,7 @@ def scdenorm(fin:str, # The input file or AnnData
             base,cont = select_base(smtx.getrow(0).data.copy(),cont,cutoff)
             if base is None and cont is None:
                 #fully auto detect
-                base,cont = auto_detect()
+                base,cont = auto_detect(smtx,1e-6)
             
         
         #3.de-normalization
@@ -162,13 +162,14 @@ def unscale_mat(smtx,base=np.e,cont=1,cutoff=0.05,rint=True,gpu=False):
 
 def select_base(x,cont=1,cutoff=0.05,plot=False):
     for b in [np.e,None,2,10]:
+        print('b is', b)
         if cont is None:
             for c in [1,0.1,0.01,0.001,0]:
                 if check_unscale(x,b,c,cutoff,plot):
                     return b,c
         else:
-                if check_unscale(x,b,cont,cutoff,plot):
-                    return b,cont
+            if check_unscale(x,b,cont,cutoff,plot):
+                return b,cont
     return None,None
 
 def check_unscale(x,base=np.e,cont=1,cutoff=0.05,plot=True):
