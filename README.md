@@ -176,4 +176,4 @@ or output `mtx` format.
 Yin Huang, Anna Vathrakokili Pournara, Ying Ao, Lirong Yang, Hui Zhang,
 Yongjian Zhang, Sheng Liu, Alvis Brazma, Irene Papatheodorou, Xinlu
 Yang, Ming Shi, Zhichao Miao “scDenorm: a denormalisation tool for
-integrating single-cell transcriptomics data”(Under review)
+integrating single-cell transcriptomics data”(2026 Gigascience, in press)
